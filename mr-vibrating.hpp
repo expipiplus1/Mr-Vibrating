@@ -73,6 +73,8 @@ struct Option<bool> {
     Value = false;
   }
 
+  void SetValue() const { Value = true; }
+
   static const bool ReadsValue = false;
   bool& Value;
   std::string HelpString;
@@ -110,6 +112,7 @@ struct OptionMatch {
   bool ReadsValue;
   unsigned Index;
   std::function<bool(const std::string&)> FillValue;
+  std::function<void()> SetValue;
 };
 
 template <class T, class = typename std::enable_if<Option<T>::ReadsValue>::type>
@@ -120,7 +123,7 @@ OptionMatch create_option_match(const Option<T>& opt, const unsigned index) {
 
 template <class T, class = typename std::enable_if<!Option<T>::ReadsValue>::type, class = void>
 OptionMatch create_option_match(const Option<T>& opt, const unsigned index) {
-  return OptionMatch{true, false, index};
+  return OptionMatch{true, false, index, {}, std::bind(&Option<T>::SetValue, &opt)};
 }
 
 //
@@ -380,6 +383,9 @@ std::string parse_arguments(const unsigned argc, const char* const* const argv,
         const std::string value(argv[i]);
         if (!match.FillValue(value))
           return "Unable to parse value \"" + value + "\" for option " + opt;
+      } else {
+        // Set the value
+        match.SetValue();
       }
     }
 
