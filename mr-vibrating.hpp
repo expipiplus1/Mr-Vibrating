@@ -68,7 +68,10 @@ struct Option<bool> {
       : Value(value),
         HelpString(std::move(help_string)),
         LongOpt(std::move(long_opt)),
-        ShortOpt(short_opt) {}
+        ShortOpt(short_opt) {
+    // Initialize the value to false, it's only set to true if we see its flag
+    Value = false;
+  }
 
   static const bool ReadsValue = false;
   bool& Value;
