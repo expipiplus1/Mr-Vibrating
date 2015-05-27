@@ -11,6 +11,20 @@
 
 namespace vibrating {
 
+namespace detail {
+//
+// A function to act as the inverse of std::to_string
+//
+template <class T>
+bool from_string(const std::string& s, T& t);
+
+//
+// A function to return the string for a particular type, not the mangled stuff from typeinfo
+//
+template <class T>
+inline std::string type_string();
+};
+
 // Forward declaration
 template <class>
 struct Option;
@@ -235,11 +249,12 @@ struct UsagePrinter {
     UsageAccumulator << a.HelpString;
 
     // If the value isn't required print the given default
-    if (!a.Required && !std::is_same<T, bool>::value)
+    if (!a.Required && !std::is_same<T, bool>::value) {
       if (std::is_same<T, std::string>::value)
         UsageAccumulator << " (default: \"" << a.Value << "\")";
       else
         UsageAccumulator << " (default: " << a.Value << ")";
+    }
 
     UsageAccumulator << "\n";
   }
@@ -273,12 +288,6 @@ VIBRATING_TYPE_STRING(double, double);
 VIBRATING_TYPE_STRING(long double, double);
 VIBRATING_TYPE_STRING(std::string, string);
 #undef VIBRATING_TYPE_STRING
-
-//
-// A function to act as the inverse of std::to_string
-//
-template <class T>
-bool from_string(const std::string& s, T& t);
 
 template <>
 inline bool from_string(const std::string& s, std::string& t) {
@@ -417,7 +426,8 @@ std::string usage_string(const std::string program_name,
 
   detail::MaxOptionLength m;
   detail::traverse_tuple(m, option_specifiers);
-  detail::traverse_tuple(detail::UsagePrinter(usage, m.MaxLength), option_specifiers);
+  detail::UsagePrinter printer(usage, m.MaxLength);
+  detail::traverse_tuple(printer, option_specifiers);
 
   return usage.str();
 }
