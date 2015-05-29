@@ -107,13 +107,12 @@ namespace detail {
 //
 // Execute a functor on every element in the tuple
 //
-template <class F, std::size_t N = 0, class... Ts,
-          class = typename std::enable_if<N == sizeof...(Ts)>::type>
-void traverse_tuple(F&, const std::tuple<Ts...>&) {}
+template <class F, std::size_t N = 0, class... Ts>
+typename std::enable_if<N == sizeof...(Ts)>::type traverse_tuple(F&, const std::tuple<Ts...>&) {}
 
-template <class F, std::size_t N = 0, class... Ts,
-          class = typename std::enable_if<(N < sizeof...(Ts))>::type, class = void>
-void traverse_tuple(F& f, const std::tuple<Ts...>& ts) {
+template <class F, std::size_t N = 0, class... Ts>
+typename std::enable_if<(N < sizeof...(Ts))>::type traverse_tuple(F& f,
+                                                                  const std::tuple<Ts...>& ts) {
   f(std::get<N>(ts), N);
   traverse_tuple<F, N + 1, Ts...>(f, ts);
 }
